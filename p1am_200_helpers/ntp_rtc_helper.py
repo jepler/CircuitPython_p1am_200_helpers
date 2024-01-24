@@ -68,7 +68,7 @@ class NTP_RTC:
             
             recv_data = client.recv(128)
             if recv_data:
-                epoch_time = struct.unpack("!12I", recv_data)[10]
+                epoch_time = struct.unpack("!I", recv_data[40:44])[0]
                 client.close()         # Close socket
                 return epoch_time - time1970 + self.tz_offset
 
