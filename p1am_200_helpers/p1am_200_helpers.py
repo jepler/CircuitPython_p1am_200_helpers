@@ -153,7 +153,7 @@ def get_ethernet(dhcp=True):
     cs = DigitalInOut(board.D5)
     spi_bus = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
     mac = get_eeprom().mac
-    _eth_iface =  WIZNET5K(spi_bus, cs, is_dhcp=dhcp, mac=mac)
+    _eth_iface =  WIZNET5K(spi_bus, cs, is_dhcp=dhcp, mac=bytes(mac))
     socket.set_interface(_eth_iface)
     return _eth_iface
 
