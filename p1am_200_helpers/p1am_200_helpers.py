@@ -22,7 +22,7 @@ from adafruit_pcf8563.pcf8563 import PCF8563
 import neopixel
 import adafruit_sdcard
 from adafruit_wiznet5k.adafruit_wiznet5k import WIZNET5K
-import adafruit_wiznet5k.adafruit_wiznet5k_socket as socket
+import adafruit_wiznet5k.adafruit_wiznet5k_socketpool as socketpool
 from p1am_200_helpers.ntp_rtc_helper import NTP_RTC, NTPException
 
 __version__ = "0.0.0+auto.0"
@@ -32,6 +32,7 @@ _internal_i2c = busio.I2C(board.ATMAC_SCL, board.ATMAC_SDA) # internal bus
 _rtc = None
 _eeprom = None
 _eth_iface = None
+_eth_socket_pool = None
 _port_1_control = None
 _port_2_control = None
 _vfs = None
@@ -153,11 +154,19 @@ def get_ethernet(dhcp=True):
     cs = DigitalInOut(board.D5)
     spi_bus = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
     mac = get_eeprom().mac
-    _eth_iface =  WIZNET5K(spi_bus, cs, is_dhcp=dhcp, mac=bytes(mac))
-    socket.set_interface(_eth_iface)
+    _eth_iface = WIZNET5K(spi_bus, cs, is_dhcp=dhcp, mac=bytes(mac))
     return _eth_iface
 
-def sync_rtc(timezone_offset=-5):
+def get_socketpool():
+    global _eth_iface, _eth_socket_pool
+    if _eth_iface is None:
+        raise RuntimeError("Ethernet interface not initialized")        
+    else:
+        if _eth_socket_pool is None:
+            _eth_socket_pool = socketpool.SocketPool(_eth_iface)
+        return _eth_socket_pool
+
+def sync_rtc(timezone_offset=-5, socketpool=None):
     """Syncs the RTC with the NTP server"""
     global _rtc, _eth_iface
 
@@ -166,12 +175,26 @@ def sync_rtc(timezone_offset=-5):
     
     if _rtc is None:
         _rtc = get_rtc()
-
-    ntp = NTP_RTC(socket, _rtc, timezone_offset)
+    if socketpool is None:
+        socketpool = get_socketpool()
+    ntp = NTP_RTC(socketpool, _rtc, timezone_offset)
     try:
         ntp.sync()
     except NTPException as e:
         print(e)
         return False
     return True
+
+def pretty_print_time(datetime=None):
+        """Convert datetime to human readable time."""
+        global _rtc
+        if datetime is None:
+            if _rtc is None:
+                _rtc = get_rtc()
+            t = _rtc.datetime
+        else:
+            t = datetime
+        formatted_time = "Date: {}/{}/{}\nTime: {}:{:02}:{:02}".format(
+        t.tm_mon, t.tm_mday, t.tm_year,t.tm_hour, t.tm_min, t.tm_sec)
+        print(formatted_time)
     

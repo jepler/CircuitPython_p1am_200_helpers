@@ -8,6 +8,7 @@ Licensed under the MIT license.
 """
 import struct
 import time
+from adafruit_wiznet5k.adafruit_wiznet5k_socketpool import SocketPoolConstants
 
 class NTPException(Exception):
     """Exception for NTP errors"""
@@ -25,7 +26,7 @@ class NTP_RTC:
     """
     def __init__(
         self,
-        socket,
+        socketpool,
         rtc,
         time_zone_offset,
         *,
@@ -34,7 +35,7 @@ class NTP_RTC:
         timeout=1,                              # Default to 1 seconds
         debug = False
     ):
-        self.socket = socket
+        self.socketpool = socketpool
         self.rtc = rtc
         self.tz_offset = time_zone_offset * 60 * 60     # Convert to seconds
         self.ntp_server = ntp_server
@@ -53,7 +54,7 @@ class NTP_RTC:
         recv_data = None
         attempts = 0
 
-        client = self.socket.socket(type=self.socket.SOCK_DGRAM)
+        client = self.socketpool.socket(type=SocketPoolConstants.SOCK_DGRAM)
         client.settimeout(self.timeout)
 
         while attempts < self.retries:
@@ -84,10 +85,3 @@ class NTP_RTC:
                                            current_time.tm_min, current_time.tm_sec,
                                            current_time.tm_wday, -1, -1))
         self.rtc.datetime = formatted_time
-
-    def pretty_print_time(self):
-        """Convert datetime to human readable time."""
-        t = self.rtc.datetime
-        formatted_time = "Date: {}/{}/{}\nTime: {}:{:02}:{:02}".format(
-        t.tm_mon, t.tm_mday, t.tm_year,t.tm_hour, t.tm_min, t.tm_sec)
-        print(formatted_time)
