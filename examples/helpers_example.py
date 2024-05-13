@@ -43,14 +43,14 @@ def main():
 
     # RTC
     rtc = helper.get_rtc()
-    print(rtc_format_time(rtc)) # print current time
+    helper.pretty_print_time() # print current time
 
     # Ethernet
     if True: # change to false if not using the P1AM-ETH
         eth = helper.get_ethernet(dhcp=True) # get ethernet object
         print(f"IP Address is: {eth.pretty_ip(eth.ip_address)}") # print IP address
         helper.sync_rtc(-4) # sync RTC with NTP server, offset by -4 hours for EST
-        print(rtc_format_time(rtc)) # print current time
+        helper.pretty_print_time() # print current time
 
     # EEPROM
     eeprom = helper.get_eeprom()
@@ -98,17 +98,7 @@ def main():
             time.sleep(.01)
 
         if time.monotonic() - last_time > 5: # Every 5 seconds, print current time
-            t = rtc.datetime
-            print(f"{t.tm_hour % 12}:{t.tm_min:02}:{t.tm_sec:02}")
+            helper.pretty_print_time()
             last_time = time.monotonic()
-        
-
-def rtc_format_time(rtc):
-    days = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-    t = rtc.datetime
-    current = f"The date is {days[int(t.tm_wday)]} {t.tm_mon:02}/{t.tm_mday}/{t.tm_year} "
-    current += f"The time is {t.tm_hour:02}:{t.tm_min:02}:{t.tm_sec:02}"
-    return current
-
 
 main() # run main function

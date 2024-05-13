@@ -20,8 +20,7 @@
 
 """
 
-from p1am_200_helpers import get_rtc, get_ethernet, NTP_RTC
-import adafruit_wiznet5k.adafruit_wiznet5k_socket as socket
+from p1am_200_helpers import get_rtc, get_ethernet, sync_rtc, pretty_print_time
 
 # RTC / ETH
 rtc = get_rtc()
@@ -33,12 +32,10 @@ timezone_offset = -5    # Time zone offset in hours (EST is -5)
 sync_interval = 1       # Next sync in minute(s)
 next_sync = rtc.datetime.tm_min
 
-# NTP RTC Object
-my_ntp = NTP_RTC(socket, rtc, timezone_offset)
 
 while True:
     if rtc.datetime.tm_min == next_sync or rtc.datetime_compromised:
         print("Syncing with NTP server...")
-        my_ntp.sync()       # Sync the RTC with the NTP server
-        my_ntp.pretty_print_time()
+        sync_rtc(timezone_offset)       # Sync the RTC with the NTP server
+        pretty_print_time()
         next_sync = (rtc.datetime.tm_min + sync_interval) % 60
