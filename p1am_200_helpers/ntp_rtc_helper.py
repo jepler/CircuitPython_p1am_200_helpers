@@ -8,7 +8,7 @@ Licensed under the MIT license.
 """
 import struct
 import time
-from adafruit_wiznet5k.adafruit_wiznet5k_socketpool import SocketPoolConstants
+from adafruit_wiznet5k.adafruit_wiznet5k_socketpool import SocketPoolContants
 
 class NTPException(Exception):
     """Exception for NTP errors"""
@@ -54,7 +54,7 @@ class NTP_RTC:
         recv_data = None
         attempts = 0
 
-        client = self.socketpool.socket(type=SocketPoolConstants.SOCK_DGRAM)
+        client = self.socketpool.socket(type=SocketPoolContants.SOCK_DGRAM)
         client.settimeout(self.timeout)
 
         while attempts < self.retries:
